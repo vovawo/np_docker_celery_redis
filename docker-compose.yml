@@ -1,0 +1,39 @@
+# docker-compose up -d --build --scale worker=2
+# docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+# docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+version: '3.8'
+
+services:
+
+  web:
+    build: ./project
+    volumes:
+      - ./project:/usr/src/app
+    env_file: dev.env
+    # environment:
+      # - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      # - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      # - REDIS_HOST=redis
+      # - REDIS_PORT=6379
+      # - NP_API_KEY=${NP_API_KEY}
+      # - NP_URL_API=${NP_URL_API}
+      # - NP_TIME_WAREHOUSE_UPDATE=${NP_TIME_WAREHOUSE_UPDATE}
+    depends_on:
+      - redis
+
+  worker:
+    build: ./project
+    # command: celery -A worker.celery worker -l INFO --pidfile=
+    command: celery -A worker.celery worker --beat --loglevel=info
+    volumes:
+      - ./project:/usr/src/app
+    env_file: dev.env
+    depends_on:
+      - web
+      - redis
+
+  redis:
+    image: redislabs/rejson:latest
+    ports:
+      - 6379:6379

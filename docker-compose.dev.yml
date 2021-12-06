@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  web:
+    ports:
+      - 8004:8000
+    command: uvicorn main:app --host 0.0.0.0 --reload
+    env_file:
+      - dev.env
+
+  worker:
+    env_file:
+      - dev.env
+
+  dashboard:
+    build: ./project
+    command:  flower --app=worker.celery --port=5555 --broker=redis://redis:6379/0
+    ports:
+      - 5556:5555
+    env_file:
+      - dev.env
+    depends_on:
+      - web
+      - redis
+      - worker

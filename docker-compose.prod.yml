@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  web:
+    ports:
+      - 80:8000
+    command: uvicorn main:app --host 0.0.0.0
+    env_file:
+      - prod.env
+
+  worker:
+    env_file:
+      - prod.env
